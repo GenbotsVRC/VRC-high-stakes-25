@@ -6,7 +6,7 @@
 # 	Description:  V5 project                                                   #
 #                                                                              #
 # ---------------------------------------------------------------------------- #
-# test2 deez nuts
+
 # Library imports
 from vex import *
 
