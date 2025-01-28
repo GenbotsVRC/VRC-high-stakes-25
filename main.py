@@ -14,14 +14,14 @@ brain = Brain()
 
 controller = Controller()
 
-clamp = Motor(Ports.PORT10)
+clamp = Motor(Ports.PORT20)
 intake = Motor(Ports.PORT11)
-train = Motor(Ports.PORT6)
-leftA = Motor(Ports.PORT8)
-leftB = Motor(Ports.PORT9)
+train = Motor(Ports.PORT21)
+leftA = Motor(Ports.PORT15)
+leftB = Motor(Ports.PORT16)
 left = MotorGroup(leftA, leftB)
-rightA = Motor(Ports.PORT20)
-rightB = Motor(Ports.PORT19)
+rightA = Motor(Ports.PORT12)
+rightB = Motor(Ports.PORT13)
 right = MotorGroup(rightA, rightB)
 drivetrain = DriveTrain(left, right, 319.19, 295, 40, MM, 1)
 
@@ -99,6 +99,9 @@ clampDown = 0
 
 def moveClampDown(): # Manual Clamp Movement Down
     global clampDown
+    brain.screen.print("hiii")
+    controller.rumble('.')
+    
     clamp.spin(REVERSE)
     while clamp.is_spinning():
         if clamp.torque(TorqueUnits.NM) > 0.03:
@@ -107,6 +110,9 @@ def moveClampDown(): # Manual Clamp Movement Down
 
 def moveClampUp(): # Manual Clamp Movement Up
     global clampDown
+    brain.screen.print("hiii")
+    controller.rumble('.')
+    
     clamp.spin(FORWARD)
     while clamp.is_spinning():
         if clamp.torque(TorqueUnits.NM) > 0.03:
