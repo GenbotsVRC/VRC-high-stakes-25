@@ -7,6 +7,12 @@
 #                                                                              #
 # ---------------------------------------------------------------------------- #
 
+
+# everything currently works except:
+# Drive
+# Auton blocks
+# Potentiometer Measuring for clamp
+
 # Library imports
 from vex import *
 
@@ -15,7 +21,8 @@ brain = Brain()
 controller = Controller()
 
 clamp = Motor(Ports.PORT20)
-intake = Motor(Ports.PORT11)
+clampMeasure = Potentiometer(brain.three_wire_port.a) # 3372 high point, 3925 low point ish
+intake = Motor(Ports.PORT2)
 train = Motor(Ports.PORT21)
 leftA = Motor(Ports.PORT15)
 leftB = Motor(Ports.PORT16)
@@ -28,11 +35,7 @@ drivetrain = DriveTrain(left, right, 319.19, 295, 40, MM, 1)
 # initalize 
 wait(30, MSEC)
 
-############################## AUTON ##############################
-def auton():
-    brain.screen.clear_screen()
-    brain.screen.print("autonomous code")
-    # place automonous code here
+
 
 ############################## MOTOR FUNCTIONS ##############################
 """
@@ -44,7 +47,6 @@ INTAKE - bool trigger
 COLLECTIONS (TRAIN + INTAKE) - start/stop
 """
 
-
 def initialize():
     drivetrain.set_stopping(BRAKE) # Stopping Stops
     clamp.set_velocity(30, PERCENT) # Define the speed to run our motors
@@ -52,14 +54,25 @@ def initialize():
     train.set_velocity(100, PERCENT)
     clamp.set_stopping(HOLD) # Clamp will actually hold
 
-intakeRolling = 0
+intakeRunning = 0
 trainRunning = 0
+clampDown = 0
 
 def clamp_lower():
-    pass
+    global clampDown
+    clamp.spin(REVERSE)
+    while clamp.is_spinning():
+        brain.screen.print(clampMeasure.angle)
+        if clamp.torque(TorqueUnits.NM) > 0.03:
+                    clamp.stop()
 
 def clamp_raise():
-    pass
+    global clampDown
+    clamp.spin(FORWARD)
+    while clamp.is_spinning():
+        brain.screen.print(clampMeasure.angle)
+        if clamp.torque(TorqueUnits.NM) > 0.03:
+                    clamp.stop()
 
 # bool - autotrack clamp movement
 # ! HANDLE MANUAL MOVEMENT IN CLAMPDOWN VARIABLE (TRACK POSITION?)
@@ -67,26 +80,6 @@ def clamp_trigger():
     pass
 
 def train_trigger():
-    pass
-
-def intake_trigger():
-    pass
-
-def collections_trigger():
-    pass
-
-
-
-def rollIntake(): # Turn on intake for rings
-    global intakeRolling
-    if intakeRolling:
-        intake.stop()
-        intakeRolling = 0
-    else: 
-        intake.spin(FORWARD)
-        intakeRolling = 1
-
-def trainRun(): # Move the conveyor to put intaken rings on goals
     global trainRunning
     if trainRunning:
         train.stop()
@@ -95,76 +88,68 @@ def trainRun(): # Move the conveyor to put intaken rings on goals
         train.spin(FORWARD)
         trainRunning = 1
 
-clampDown = 0
+def intake_trigger():
+    global intakeRunning
+    if intakeRunning:
+        intake.stop()
+        intakeRunning = 0
+    else: 
+        intake.spin(FORWARD)
+        intakeRunning = 1
 
-def moveClampDown(): # Manual Clamp Movement Down
-    global clampDown
-    brain.screen.print("hiii")
-    controller.rumble('.')
-    
-    clamp.spin(REVERSE)
-    while clamp.is_spinning():
-        if clamp.torque(TorqueUnits.NM) > 0.03:
-                    clamp.stop()
-    clampDown = 0
-
-def moveClampUp(): # Manual Clamp Movement Up
-    global clampDown
-    brain.screen.print("hiii")
-    controller.rumble('.')
-    
-    clamp.spin(FORWARD)
-    while clamp.is_spinning():
-        if clamp.torque(TorqueUnits.NM) > 0.03:
-                    clamp.stop()
-    clampDown = 0
-
-
-def stopClamp(): # Manual Clamp Movement Stop
-    global clampDown
-    clamp.stop()
-    clampDown = 0
-
-cRunning = 0
-
-def runCollection():
-    global cRunning, trainRunning, intakeRolling
-    if intakeRolling and trainRunning and not cRunning:
-        cRunning = 1
-    if cRunning:
-        trainRunning = 1
-        intakeRolling = 1
-        trainRun()
-        rollIntake()
-        cRunning = 0
-    else:
+# if everything is running, stop all intake methods
+# else run all intake methods
+def collections_trigger():
+    global intakeRunning, trainRunning
+    print(intakeRunning, trainRunning)
+    if not intakeRunning or not trainRunning:
         trainRunning = 0
-        intakeRolling = 0
-        trainRun()
-        rollIntake()
-        cRunning = 1
-
-
-
-
+        intakeRunning = 0
+        train_trigger()
+        intake_trigger()
+    else:
+        trainRunning = 1
+        intakeRunning = 1
+        train_trigger()
+        intake_trigger()
 
 
 ############################## CALLBACKS ##############################
-controller.buttonR2.pressed(rollIntake)
-controller.buttonR1.pressed(trainRun)
-controller.buttonUp.pressed(moveClampUp)
-controller.buttonDown.pressed(moveClampDown)
+controller.buttonR2.pressed(intake_trigger)
+controller.buttonR1.pressed(train_trigger)
+
+controller.buttonUp.pressed(clamp_raise)
 controller.buttonUp.released(clamp.stop)
+
+controller.buttonDown.pressed(clamp_lower)
 controller.buttonDown.released(clamp.stop)
 
+controller.buttonL2.pressed(collections_trigger)
 
 
 ############################## TROUBLESHOOTING ##############################
 # test to see if controller registers presses
 def test_controller(): 
     controller.rumble(".")
-    brain.screen.print("ihe")
+    brain.screen.print("controller works!")
+    print('hi')
 controller.buttonA.pressed(test_controller)
+
+
+############################## AUTON BLOCKS ##############################
+def auton_mobile():
+    pass
+
+
+
+
+
+
+############################## COMPETITION ##############################
+def auton():
+    brain.screen.clear_screen()
+    brain.screen.print("autonomous code")
+    # place automonous code here
 
 def user_control():
     brain.screen.clear_screen()
