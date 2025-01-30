@@ -9,9 +9,8 @@
 
 
 # everything currently works except:
-# Drive
 # Auton blocks
-# Potentiometer Measuring for clamp
+# Potentiometer measuring for clamp
 
 # Library imports
 from vex import *
@@ -24,11 +23,11 @@ clamp = Motor(Ports.PORT20)
 clampMeasure = Potentiometer(brain.three_wire_port.a) # 3372 high point, 3925 low point ish
 intake = Motor(Ports.PORT2)
 train = Motor(Ports.PORT21)
-leftA = Motor(Ports.PORT15)
-leftB = Motor(Ports.PORT16)
+leftA = Motor(Ports.PORT15, True)
+leftB = Motor(Ports.PORT16, True)
 left = MotorGroup(leftA, leftB)
-rightA = Motor(Ports.PORT12)
-rightB = Motor(Ports.PORT13)
+rightA = Motor(Ports.PORT11)
+rightB = Motor(Ports.PORT12)
 right = MotorGroup(rightA, rightB)
 drivetrain = DriveTrain(left, right, 319.19, 295, 40, MM, 1)
 
@@ -38,16 +37,7 @@ wait(30, MSEC)
 
 
 ############################## MOTOR FUNCTIONS ##############################
-"""
-We need to have functions for the following:
-CLAMP - manual lower/raise
-CLAMP - bool trigger
-TRAIN - bool trigger
-INTAKE - bool trigger
-COLLECTIONS (TRAIN + INTAKE) - start/stop
-"""
-
-def initialize():
+def initialize(): # set standard velocities
     drivetrain.set_stopping(BRAKE) # Stopping Stops
     clamp.set_velocity(30, PERCENT) # Define the speed to run our motors
     intake.set_velocity(50, PERCENT)
@@ -132,7 +122,6 @@ controller.buttonL2.pressed(collections_trigger)
 def test_controller(): 
     controller.rumble(".")
     brain.screen.print("controller works!")
-    print('hi')
 controller.buttonA.pressed(test_controller)
 
 
@@ -157,8 +146,21 @@ def user_control():
     # place something in while loop (unclear)
     # i believe drive settings
     initialize()
+    left.spin(FORWARD)
+    right.spin(FORWARD)
     while True:
         wait(20, MSEC)
+        leftpos = controller.axis3.position()
+        if -10 < leftpos < 10:
+            left.stop()
+        else:
+            left.set_velocity(controller.axis3.position(), PERCENT)
+        rightpos = controller.axis2.position()
+        if -10 < rightpos < 10:
+            right.stop()
+        else:
+            right.set_velocity(controller.axis2.position(), PERCENT)
+
         
 
 # create competition instance
