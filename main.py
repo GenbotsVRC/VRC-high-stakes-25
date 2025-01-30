@@ -29,7 +29,7 @@ left = MotorGroup(leftA, leftB)
 rightA = Motor(Ports.PORT11)
 rightB = Motor(Ports.PORT12)
 right = MotorGroup(rightA, rightB)
-drivetrain = DriveTrain(left, right, 319.19, 295, 40, MM, 1)
+drivetrain = DriveTrain(left, right, 319.19, 385, 260, MM, 1)
 
 # initalize 
 wait(30, MSEC)
@@ -48,13 +48,30 @@ intakeRunning = 0
 trainRunning = 0
 clampDown = 0
 
+
+
+# code for clamp should run as follows:
+# on manual - when we press down, the clamp moves down until
+# it experiences enough torque or hits the potentiometer limit
+# if we go up then same thing (should stop at potentiometer first though)
+# 
+# the trigger should track potentiometer and decide whether or not to go up or down based on that and clampDown
 def clamp_lower():
+    # current code
     global clampDown
     clamp.spin(REVERSE)
     while clamp.is_spinning():
-        brain.screen.print(clampMeasure.angle)
         if clamp.torque(TorqueUnits.NM) > 0.03:
-                    clamp.stop()
+            clamp.stop()
+            clampDown = 1
+
+    # code for when potentiometer is added
+    # global clampDown
+    # clamp.spin(REVERSE)
+    # while clamp.is_spinning():
+    #     if clampMeasure.angle() <= 0:
+    #         clamp.stop()
+    #         clampDown = 1
 
 def clamp_raise():
     global clampDown
@@ -62,7 +79,16 @@ def clamp_raise():
     while clamp.is_spinning():
         brain.screen.print(clampMeasure.angle)
         if clamp.torque(TorqueUnits.NM) > 0.03:
-                    clamp.stop()
+            clamp.stop()
+            clampDown = 0
+    
+    # code for when potentiometer is added
+    # global clampDown
+    # clamp.spin(REVERSE)
+    # while clamp.is_spinning():
+    #     if clampMeasure.angle() <= 0:
+    #         clamp.stop()
+    #         clampDown = 0
 
 # bool - autotrack clamp movement
 # ! HANDLE MANUAL MOVEMENT IN CLAMPDOWN VARIABLE (TRACK POSITION?)
@@ -126,6 +152,41 @@ controller.buttonA.pressed(test_controller)
 
 
 ############################## AUTON BLOCKS ##############################
+
+
+"""
+Auton has four options:
+Positive red
+Negative red
+Positive blue
+Negative blue
+ -______________________-
+  |                     |
+  |      O2  M  O2      |
+  |                     |
+R |       M      M      | B
+E | O  O2    LL    O2 O | L
+D |       M      M      | U
+  |                     | E
+  |  O   O2  M  O2  O   |
+ +| ____________________|+
+
+When in negative corner, we can:
+Grab a mobile goal
+Grab a center ring (?)
+Touch ladder
+
+When in positive corner, we can:
+Grab a mobile goal
+Grab a center ring (?)
+Grab opponent ring
+Touch ladder
+
+
+
+
+
+"""
 def auton_mobile():
     pass
 
@@ -135,6 +196,13 @@ def auton_mobile():
 
 
 ############################## COMPETITION ##############################
+def test_decorator(func):
+    def wrapper(*args, **kwargs):
+        print(args)
+        print(kwargs)
+        return func(*args, **kwargs)
+    return wrapper
+
 def auton():
     brain.screen.clear_screen()
     brain.screen.print("autonomous code")
@@ -143,21 +211,24 @@ def auton():
 def user_control():
     brain.screen.clear_screen()
     brain.screen.print("driver control")
-    # place something in while loop (unclear)
-    # i believe drive settings
     initialize()
     left.spin(FORWARD)
     right.spin(FORWARD)
     while True:
+        # OPTION ONE
         wait(20, MSEC)
+        # left.set_velocity(controller.axis3.position(), PERCENT)
+        # right.set_velocity(controller.axis2.position(), PERCENT) among us
+
+        # OPTION TWO (DEADZONING)
         leftpos = controller.axis3.position()
-        if -10 < leftpos < 10:
-            left.stop()
+        if -7 < leftpos < 7:
+            left.set_velocity(0, PERCENT)
         else:
             left.set_velocity(controller.axis3.position(), PERCENT)
         rightpos = controller.axis2.position()
-        if -10 < rightpos < 10:
-            right.stop()
+        if -7 < rightpos < 7:
+            right.set_velocity(0, PERCENT)
         else:
             right.set_velocity(controller.axis2.position(), PERCENT)
 
@@ -167,5 +238,4 @@ def user_control():
 comp = Competition(user_control, auton)
 
 # actions to do when the program starts
-brain.screen.clear_screen()
 controller.rumble("-")
