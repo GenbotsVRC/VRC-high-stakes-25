@@ -192,7 +192,54 @@ Touch ladder
 
 
 """
-def auton_mobile():
+
+# assume starting in the center of 
+def auton_mobile(color, corner):
+    if color == "red":
+        if corner == "+":
+            # drivetrain back facing towards center
+            drivetrain.drive_for(REVERSE, 23.08, INCHES)
+            drivetrain.turn_for(RIGHT, 45, DEGREES)
+            drivetrain.drive_for(REVERSE, 6, INCHES)
+            clamp_lower()
+            wait(0.5, SECONDS)
+            
+            # collect non-alliance ring
+            collections_trigger()
+            drivetrain.drive_for(FORWARD, 20, INCHES)
+            wait(0.5, SECONDS)
+            collections_trigger()
+            clamp_raise()
+            drivetrain.drive_for(FORWARD, 2, INCHES)
+            drivetrain.turn_for(LEFT, 45, DEGREES)
+            drivetrain.drive_for(REVERSE, 5, INCHES)
+            drivetrain.turn_for(RIGHT, 45, DEGREES)
+            drivetrain.drive_for(REVERSE, 32.64, INCHES)
+
+        elif corner == '-':
+            pass
+    else:
+        if corner == "+":
+            # drivetrain back facing towards center
+            drivetrain.drive_for(REVERSE, 23.08, INCHES)
+            drivetrain.turn_for(LEFT, 45, DEGREES)
+            drivetrain.drive_for(REVERSE, 6, INCHES)
+            clamp_lower()
+            wait(0.5, SECONDS)
+            
+            # collect non-alliance ring
+            collections_trigger()
+            drivetrain.drive_for(FORWARD, 20, INCHES)
+            wait(0.5, SECONDS)
+            collections_trigger()
+            clamp_raise()
+            drivetrain.drive_for(FORWARD, 2, INCHES)
+            drivetrain.turn_for(RIGHT, 45, DEGREES)
+            drivetrain.drive_for(REVERSE, 5, INCHES)
+            drivetrain.turn_for(LEFT, 45, DEGREES)
+            drivetrain.drive_for(REVERSE, 32.64, INCHES)
+        elif corner == '-':
+            pass
     pass
 
 
