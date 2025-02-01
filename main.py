@@ -29,7 +29,7 @@ left = MotorGroup(leftA, leftB)
 rightA = Motor(Ports.PORT11)
 rightB = Motor(Ports.PORT12)
 right = MotorGroup(rightA, rightB)
-drivetrain = DriveTrain(left, right, 319.19, 385, 260, MM, 1)
+drivetrain = DriveTrain(left, right, 319.19, 385, 260, MM, 2)
 
 # initalize 
 wait(30, MSEC)
@@ -102,6 +102,11 @@ def train_trigger():
         trainRunning = 0
     else:
         train.spin(FORWARD)
+        while train.is_spinning():
+            if train.torque(TorqueUnits.NM) > 0.5:
+                train.stop()
+                wait(0.05, SECONDS)
+                train.spin(FORWARD)
         trainRunning = 1
 
 def intake_trigger():
@@ -191,10 +196,6 @@ def auton_mobile():
     pass
 
 
-
-
-
-
 ############################## COMPETITION ##############################
 def test_decorator(func):
     def wrapper(*args, **kwargs):
@@ -239,3 +240,4 @@ comp = Competition(user_control, auton)
 
 # actions to do when the program starts
 controller.rumble("-")
+drivetrain.drive_for(FORWARD, 23.08, INCHES)
